@@ -4,7 +4,13 @@
   "description": "Authentication API library in Go for Liquid Code + compatible projects.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prebuild": "rm -rf ./dist/* && mkdir -p ./dist",
+    "build": "catalyst-scripts build",
+    "pretest": "catalyst-scripts pretest",
+    "test": "catalyst-scripts test",
+    "lint": "catalyst-scripts lint",
+    "lint-fix": "catalyst-scripts lint-fix",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
@@ -15,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/Liquid-Labs/lc-authentication-api/issues"
   },
-  "homepage": "https://github.com/Liquid-Labs/lc-authentication-api#readme"
+  "homepage": "https://github.com/Liquid-Labs/lc-authentication-api#readme",
+  "dependencies": {
+    "@liquid-labs/catalyst-scripts": "file:.yalc/@liquid-labs/catalyst-scripts"
+  }
 }

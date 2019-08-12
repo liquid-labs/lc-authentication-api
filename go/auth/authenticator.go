@@ -32,7 +32,7 @@ func init() {
   }
 }
 
-func GetAuthenticator(r *http.Request) (*Authenticator, terror.Terror) {
+func InitAuthenticator(r *http.Request) (*Authenticator, terror.Terror) {
 	var app *firebase.App
 	var err error
 	if env.IsDev() {

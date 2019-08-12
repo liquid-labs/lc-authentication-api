@@ -15,10 +15,14 @@ const AuthenticatorKey authenticatorKey = authenticatorKey(`lc-authenticator`)
 // by downstream handlers.
 func SetAuthorizationContext(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    if authenticator, err := GetAuthenticator(r); err != nil {
+    if authenticator, err := InitAuthenticator(r); err != nil {
       rest.HandleError(w, err)
     } else {
       next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), AuthenticatorKey, authenticator)))
     }
   })
+}
+
+func GetAuthenticator(ctx context.Context) Authenticator {
+  return ctx.Value(AuthenticatorKey).(Authenticator)
 }
