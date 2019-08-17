@@ -23,6 +23,6 @@ func SetAuthorizationContext(next http.Handler) http.Handler {
   })
 }
 
-func GetAuthenticator(ctx context.Context) Authenticator {
-  return ctx.Value(AuthenticatorKey).(Authenticator)
+func GetAuthenticator(ctx context.Context) *Authenticator {
+  return ctx.Value(AuthenticatorKey).(*Authenticator)
 }
