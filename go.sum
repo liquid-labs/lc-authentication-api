@@ -11,6 +11,8 @@ github.com/Liquid-Labs/go-rest v1.0.0-prototype.4 h1:htv8xLxqlbPibDJL6gUKgALeRka
 github.com/Liquid-Labs/go-rest v1.0.0-prototype.4/go.mod h1:zWdbB8g29fPWLq4dqand77+oFHAPWiJYrRVatWWa8mg=
 github.com/Liquid-Labs/terror v0.0.0-20190801223730-3f5389af3ff2 h1:8U/guTtnLJN/cU0VDk0hWk0Yxxe499aE9drdaduQDuw=
 github.com/Liquid-Labs/terror v0.0.0-20190801223730-3f5389af3ff2/go.mod h1:MrllZ172GtwBFSm+HOpKcctvbVsN1L7Sul0KgOzw+nY=
+github.com/Liquid-Labs/terror v1.0.0-alpha.0 h1:X9gEW6Ih9QcJ+e5k83kdGoW5MC9ETvfT+0P7RgxTujs=
+github.com/Liquid-Labs/terror v1.0.0-alpha.0/go.mod h1:MrllZ172GtwBFSm+HOpKcctvbVsN1L7Sul0KgOzw+nY=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
