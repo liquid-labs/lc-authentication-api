@@ -57,7 +57,7 @@ func InitAuthenticator(r *http.Request) (*Authenticator, terror.Terror) {
     // TODO: use VerifyIDTokenAndCheckRevoked?
   	token, err := authClient.VerifyIDToken(r.Context(), tokenString)
   	if err != nil {
-  		return nil, terror.AuthorizationError("Could not decode HTTP authorizaiton token.", err)
+  		return nil, terror.UnprocessableEntityError(fmt.Sprintf(`Could not decode HTTP authorizaiton token. (%s)`))
   	} else {
       aznID := token.UID
       claims := token.Claims
@@ -94,7 +94,7 @@ func (a *Authenticator) HasAllClaims(req ...string) (bool) {
 func (a *Authenticator) RequireAllClaims(req ...string) (bool, terror.Terror) {
   passes := a.HasAllClaims(req...)
   if !passes {
-    return false, terror.AuthorizationError(fmt.Sprintf("Access to resource requires claims '%s'.", strings.Join(req, `', '`)), nil)
+    return false, terror.ForbiddenError(fmt.Sprintf("Access to resource requires claims '%s'.", strings.Join(req, `', '`)))
   } else {
     return true, nil
   }
@@ -115,7 +115,7 @@ func (a *Authenticator) HasAnyClaim(req ...string) (bool) {
 func (a *Authenticator) RequireAnyClaim(req ...string) (bool, terror.Terror) {
   passes := a.HasAnyClaim(req...)
   if !passes {
-    return false, terror.AuthorizationError(fmt.Sprintf("Access to resource requires any claim '%s'.", strings.Join(req, `', '`)), nil)
+    return false, terror.ForbiddenError(fmt.Sprintf("Access to resource requires any claim '%s'.", strings.Join(req, `', '`)))
   } else {
     return true, nil
   }
