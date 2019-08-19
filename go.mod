@@ -22,3 +22,5 @@ require (
 )
 
 replace github.com/Liquid-Labs/go-rest => ../go-rest
+
+replace github.com/Liquid-Labs/terror => ../terror

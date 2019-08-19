@@ -67,6 +67,15 @@ func InitAuthenticator(r *http.Request) (*Authenticator, terror.Terror) {
   }
 }
 
+func (a *Authenticator) SetAznID(aznID string) terror.Terror {
+  if env.IsProduction() {
+    return terror.BadRequestError(`Attempt to set AZN ID in production.`)
+  } else {
+    a.aznID = aznID
+    return nil
+  }
+}
+
 func (a *Authenticator) GetFirebaseAuthClient() (*auth.Client) {
   return a.firebaseAuthClient
 }
