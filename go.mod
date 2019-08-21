@@ -6,6 +6,7 @@ require (
 	github.com/Liquid-Labs/env v1.0.0-beta.0
 	github.com/Liquid-Labs/go-rest v1.0.0-prototype.4
 	github.com/Liquid-Labs/terror v1.0.0-alpha.1
+	github.com/golang/mock v1.3.1
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/pprof v0.0.0-20190723021845-34ac40c74b70 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
