@@ -1,2 +1,4 @@
 // The auth package provides useful authentication library functions for use with REST-ful API requests. In particular, `SetAuthorizationContext` may be used to process incoming requests for authentication and setting up the `Authentiactor` struct on the request Context for downstream access.
+//
+// Users may be assigned 'claims' which can be treated as simple 'roles' or indicate particular special permissions. In theory, a claim could encode a limited amount of information, but they are inherently limited and for all practical purposes are simple labels. This may be sufficient for some applications, though in general developers are encouraged to use the Liquid Code Authorization (Liquid Azn) framework (TODO:  link). Liquid Azn is a flexible grant based system that can be used to setup simple roles, but also provides support for fine-grained, user-driven access/authorization management.
 package auth
