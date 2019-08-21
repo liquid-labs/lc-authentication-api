@@ -1,7 +1,6 @@
 package auth
 
 import (
-  "context"
   "fmt"
   "net/http"
   "strings"
@@ -32,6 +31,7 @@ type FbOracle struct {
 }
 
 func init() {
+  // We'll need to do a little more here if we ever support other providers.
   if env.IsDev() {
     localFirebaseCredsFile := env.MustGet(credsKey)
     fbClientOptions = option.WithCredentialsFile(localFirebaseCredsFile)
@@ -79,18 +79,6 @@ func (auth *FbOracle) InitFromRequest(r *http.Request) (Terror) {
   }
 }
 
-func (authOracle *FbOracle) GetFromContext(ctx context.Context) Terror {
-  cachedOracle := ctx.Value(AuthOracleKey).(*FbOracle)
-  if authOracle != nil {
-    authOracle.firebaseAuthClient = cachedOracle.firebaseAuthClient
-    authOracle.request = cachedOracle.request
-    authOracle.token = cachedOracle.token
-    authOracle.authID = cachedOracle.authID
-    authOracle.claims = cachedOracle.claims
-  }
-  return nil
-}
-
 func (authOracle *FbOracle) RequireAuthentication() Terror {
   if !authOracle.IsRequestAuthenticated() {
     return UnauthenticatedError(`Non-Authenticated user cannot requested 'owned' items.`)
@@ -104,15 +92,6 @@ func (authOracle *FbOracle) RequireAuthentication() Terror {
 
 func (a *FbOracle) IsRequestAuthenticated() (bool) {
   return a != nil && a.authID != ``
-}
-
-func (a *FbOracle) SetAuthID(authID string) Terror {
-  if env.IsProduction() {
-    return BadRequestError(`Attempt to set AZN ID in production.`)
-  } else {
-    a.authID = authID
-    return nil
-  }
 }
 
 func (a *FbOracle) GetAuthID() (string) {
