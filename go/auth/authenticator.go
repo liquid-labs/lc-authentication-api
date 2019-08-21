@@ -50,6 +50,10 @@ func GetAuthOracleFromContext(ctx context.Context) (AuthOracle) {
   return ctx.Value(AuthOracleKey).(AuthOracle)
 }
 
+func SetAuthOracleOnContext(authOracle AuthOracle, ctx context.Context) context.Context {
+  return context.WithValue(ctx, AuthOracleKey, authOracle)
+}
+
 // SetAuthorizationContext initializes an AuthOracle and is intended for use as the first or an early member of the rquest processing chain. To use a specific AuthOracle implementation (tied to a specific authentication provider, or for testing), simply place an empty, non-nill struct of the approprite type implementing AuthOracle in the request context using `AuthOracleKey`. If no such stuct is found, we default to the FbOracle.
 func SetAuthorizationContext(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +65,7 @@ func SetAuthorizationContext(next http.Handler) http.Handler {
       rest.HandleError(w, err)
     } else {
       // cache the oracle on the context for downstream use
-      next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), AuthOracleKey, authOracle)))
+      next.ServeHTTP(w, r.WithContext(SetAuthOracleOnContext(authOracle, r.Context())))
     }
   })
 }
