@@ -24,3 +24,5 @@ require (
 replace github.com/Liquid-Labs/go-rest => ../go-rest
 
 replace github.com/Liquid-Labs/terror => ../terror
+
+replace github.com/Liquid-Labs/lc-entities-model => ../lc-entities-model
