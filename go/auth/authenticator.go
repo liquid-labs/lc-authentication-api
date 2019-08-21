@@ -47,7 +47,12 @@ type authOracleKey string
 const AuthOracleKey authOracleKey = authOracleKey(`lc-authOracle`)
 
 func GetAuthOracleFromContext(ctx context.Context) (AuthOracle) {
-  return ctx.Value(AuthOracleKey).(AuthOracle)
+  nilOrAuth := ctx.Value(AuthOracleKey)
+  if nilOrAuth == nil {
+    return AuthOracle(nil)
+  } else {
+    return nilOrAuth.(AuthOracle)
+  }
 }
 
 func SetAuthOracleOnContext(authOracle AuthOracle, ctx context.Context) context.Context {
