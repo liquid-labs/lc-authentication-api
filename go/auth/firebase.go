@@ -69,7 +69,7 @@ func (auth *FbOracle) InitFromRequest(r *http.Request) (Terror) {
     // TODO: use VerifyIDTokenAndCheckRevoked?
   	token, err := authClient.VerifyIDToken(r.Context(), tokenString)
   	if err != nil {
-  		return UnprocessableEntityError(fmt.Sprintf(`Could not decode HTTP authorizaiton token. (%s)`))
+  		return UnprocessableEntityError(fmt.Sprintf(`Could not decode HTTP authorizaiton token.`))
   	} else {
       auth.token = token
       auth.authID = token.UID

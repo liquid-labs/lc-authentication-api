@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/Liquid-Labs/lc-authentication-api#readme",
   "dependencies": {
-    "@liquid-labs/catalyst-scripts": "file:.yalc/@liquid-labs/catalyst-scripts"
+    "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.24"
   }
 }
