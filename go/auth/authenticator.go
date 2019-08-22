@@ -1,126 +1,76 @@
 package auth
 
 import (
-  "fmt"
+  "context"
   "net/http"
-  "strings"
 
-  "firebase.google.com/go/auth"
-  "firebase.google.com/go"
-
-  "github.com/Liquid-Labs/env/go/env"
-  "github.com/Liquid-Labs/terror/go/terror"
-  "google.golang.org/api/option"
+  . "github.com/Liquid-Labs/terror/go/terror"
+  "github.com/Liquid-Labs/go-rest/rest"
 )
 
-type Authenticator struct {
-  firebaseAuthClient *auth.Client
-  request            *http.Request
-  token              *auth.Token
-  aznID              string
-  claims             map[string]interface{}
+// AuthOracle defines the interface for detecting and extracting authentication information from an HTTP request. In live usage, `SetAuthorizationContext` is used to inject an AuthOracle into the request context for use in downstream processing. Downstream handlers can access the AuthOracle via GetAuthOracleFromContext.
+type AuthOracle interface {
+  // InitFromRequest initialaizes an authentic from an HTTP request. This is typically called by the HTTP handler SetAuthorizationContext. This method expects an empty, non-nil reciever.
+  InitFromRequest(*http.Request) Terror
+
+  // RquireAuthentication creates an appropriate, typed error if the request is not authenticated.
+  RequireAuthentication() Terror
+
+  // IsRequestAuthenticated returns true if the request is authenticated, and false otherwise.
+  IsRequestAuthenticated() bool
+
+  // GetAuthID returns the authenticated user's authorization ID as maintained by the authentication provider. This is distinct from our own ID.
+  GetAuthID() string
+
+  // GetRequest returns the HTTP request which was processed to determine authentication. The request is usually available from the handler, and this is provided as a convenience.
+  GetRequest() *http.Request
 }
 
-const credsKey string = "FIREBASE_CREDS_FILE"
-var fbConfig = &firebase.Config{}
-var fbClientOptions option.ClientOption
+type Claimant interface {
+  // HasAllClaims returns true if the authenticated user has all the indicated claims.
+  HasAllClaims(claims ...string) bool
 
-func init() {
-  if env.IsDev() {
-    localFirebaseCredsFile := env.MustGet(credsKey)
-    fbClientOptions = option.WithCredentialsFile(localFirebaseCredsFile)
-  }
+  // RequireAllClaims returns a typed error unless the authenticated user has all the indicated claims.
+  RequireAllClaims(claims ...string) Terror
+
+  // HasAnyClaim returns true if the authenticated user has any of the indicated claims.
+  HasAnyClaim(claims ...string) bool
+
+  // RequireAnyClaim returns a typed error unless the authenticated user has at least on of the indicated claims.
+  RequireAnyClaims()
+
+  // GetClaims provides a list of the claims held by the authenticated user. If the user has no claims, or is not authenticated, this will be an empty, non-nil list.
+  GetClaims() []string
 }
 
-func InitAuthenticator(r *http.Request) (*Authenticator, terror.Terror) {
-	var app *firebase.App
-	var err error
-	if env.IsDev() {
-		app, err = firebase.NewApp(r.Context(), fbConfig, fbClientOptions)
-	} else {
-		app, err = firebase.NewApp(r.Context(), fbConfig)
-	}
-  if err != nil {
-    return nil, terror.ServerError("Could not access authentication service.", err)
-  }
+type authOracleKey string
+const AuthOracleKey authOracleKey = authOracleKey(`lc-authOracle`)
 
-  authClient, err := app.Auth(r.Context())
-  if err != nil {
-    return nil, terror.ServerError("Could not access authenticaiton service.", err)
-  }
-
-  authHeader := r.Header.Get("Authorization")
-  if authHeader == `` {
-    return &Authenticator{authClient, r, nil, ``, map[string]interface{}{}}, nil
+func GetAuthOracleFromContext(ctx context.Context) (AuthOracle) {
+  nilOrAuth := ctx.Value(AuthOracleKey)
+  if nilOrAuth == nil {
+    return AuthOracle(nil)
   } else {
-    tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-    // TODO: use VerifyIDTokenAndCheckRevoked?
-  	token, err := authClient.VerifyIDToken(r.Context(), tokenString)
-  	if err != nil {
-  		return nil, terror.UnprocessableEntityError(fmt.Sprintf(`Could not decode HTTP authorizaiton token. (%s)`))
-  	} else {
-      aznID := token.UID
-      claims := token.Claims
+    return nilOrAuth.(AuthOracle)
+  }
+}
 
-      return &Authenticator{authClient, r, token, aznID, claims}, nil
+func SetAuthOracleOnContext(authOracle AuthOracle, ctx context.Context) context.Context {
+  return context.WithValue(ctx, AuthOracleKey, authOracle)
+}
+
+// SetAuthorizationContext initializes an AuthOracle and is intended for use as the first or an early member of the rquest processing chain. To use a specific AuthOracle implementation (tied to a specific authentication provider, or for testing), simply place an empty, non-nill struct of the approprite type implementing AuthOracle in the request context using `AuthOracleKey`. If no such stuct is found, we default to the FbOracle.
+func SetAuthorizationContext(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    authOracle := GetAuthOracleFromContext(r.Context())
+    if authOracle == nil {
+      authOracle = &FbOracle{}
     }
-  }
-}
-
-func (a *Authenticator) GetFirebaseAuthClient() (*auth.Client) {
-  return a.firebaseAuthClient
-}
-
-func (a *Authenticator) IsRequestAuthenticated() (bool) {
-  return a.aznID != ``
-}
-
-func (a *Authenticator) GetAznID() (string) {
-  return a.aznID
-}
-
-func (a *Authenticator) HasAllClaims(req ...string) (bool) {
-  claims := a.token.Claims
-  for _, reqClaim := range req {
-    claim, ok := claims[reqClaim]
-    if !ok || !claim.(bool) {
-      return false
+    if err := authOracle.InitFromRequest(r); err != nil {
+      rest.HandleError(w, err)
+    } else {
+      // cache the oracle on the context for downstream use
+      next.ServeHTTP(w, r.WithContext(SetAuthOracleOnContext(authOracle, r.Context())))
     }
-  }
-
-  return true
-}
-
-func (a *Authenticator) RequireAllClaims(req ...string) (bool, terror.Terror) {
-  passes := a.HasAllClaims(req...)
-  if !passes {
-    return false, terror.ForbiddenError(fmt.Sprintf("Access to resource requires claims '%s'.", strings.Join(req, `', '`)))
-  } else {
-    return true, nil
-  }
-}
-
-func (a *Authenticator) HasAnyClaim(req ...string) (bool) {
-  claims := a.token.Claims
-  for _, reqClaim := range req {
-    claim, ok := claims[reqClaim]
-    if ok && claim.(bool) {
-      return true
-    }
-  }
-
-  return false
-}
-
-func (a *Authenticator) RequireAnyClaim(req ...string) (bool, terror.Terror) {
-  passes := a.HasAnyClaim(req...)
-  if !passes {
-    return false, terror.ForbiddenError(fmt.Sprintf("Access to resource requires any claim '%s'.", strings.Join(req, `', '`)))
-  } else {
-    return true, nil
-  }
-}
-
-func (a *Authenticator) GetRequest() (*http.Request) {
-  return a.request
+  })
 }
