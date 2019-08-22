@@ -1,6 +1,6 @@
 {
   "name": "@liquid-labs/lc-authentication-api",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "description": "Authentication API library in Go for Liquid Code + compatible projects.",
   "main": "index.js",
   "scripts": {
